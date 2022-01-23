@@ -5,7 +5,7 @@ requirement: telethon, ```pip install telethon```
 -------------------
 1. Get telegram app api id and api hash from [my.telegram.org/apps](https://my.telegram.org/apps)
 2. Update api_id and apt_hash in ```config.py```
-3. Run ```python list_chat_ids.py``` get chat name and id
+3. Run ```python3 list_chat_ids.py``` get chat name and id
 4. Update corresponding ids in ```config.py```
 ------------------------
 ```list_chat_id.py```: List all chat(user/channel/group) ids
