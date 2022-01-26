@@ -3,8 +3,8 @@ Configurations
 Get your app api id and api hash from https://my.telegram.org/apps
 """
 
-API_ID = 123456
-API_HASH = "abcdef2342342342342342"
+API_ID = 123345
+API_HASH = "xxxxxxxxxxxxxxxxxxxxxxx"
 SESSION_NAME = "acytoo client" # whatever you like
 
 SELF_ID = 123456
@@ -23,6 +23,6 @@ AUTO_DELETE_WAIT_TIME = 10 # in seconds, for every 10 seconds, check and delete 
 CMD_REPLY = "autoreply"
 CMD_DELETE = "autodelete"
 
-CHAT_ID_FILE_NAME = "chat_ids.txt"
+CHAT_ID_FILE_NAME = "chat_ids.json"
 DOCUMENT_ID_FILE_NAME = "doc_ids.json"
 

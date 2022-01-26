@@ -21,6 +21,7 @@ async def dedup(client, target_chat, trash_channel=PeerChannel(TRASH_CHANNEL_ID)
         document_id_set.add(message.document.id)
   print("Done")
 
+
 if __name__ == "__main__":
   client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
   target_chat = PeerChannel(SAVED_CHANNEL_ID) # deduplicate documents in saved channel

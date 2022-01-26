@@ -1,6 +1,7 @@
 """
 Get chat id with name
 """
+import json
 
 from telethon import TelegramClient
 
@@ -10,11 +11,11 @@ from config import CHAT_ID_FILE_NAME
 
 async def get_list():
   dialogs = await client.get_dialogs(limit=None)
-  res = ""
+  name_id = {}
   for dialog in dialogs:
-    res += f"{dialog.name} | {dialog.entity.id}\n"
+    name_id[dialog.entity.id] = dialog.name
   with open(CHAT_ID_FILE_NAME, "w", encoding="utf-8") as f:
-    f.write(res)
+    json.dump(name_id, f, indent=0, ensure_ascii=False)
   print("Done")
 
 if __name__ == "__main__":

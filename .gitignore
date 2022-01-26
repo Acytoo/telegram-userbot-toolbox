@@ -2,4 +2,7 @@
 *.json
 *.txt
 *.session
+test.*
+__pycache__
+__pycache__/*
 

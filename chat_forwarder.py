@@ -21,7 +21,7 @@ async def handler(event):
       await event.mark_read()  # Mark as read
       await client.forward_messages(destination, event.message)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   with client:
     _ = client(UpdateStatusRequest(offline=False)) # not working if send messages
     client.run_until_disconnected()
