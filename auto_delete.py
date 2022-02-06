@@ -57,7 +57,7 @@ async def command_handler(event):
 @client.on(events.NewMessage(outgoing=True)) # monitor outgoing messages
 async def outgoing_message_handler(event):
   global group_delete_time
-  if event.message.raw_text[0] == COMMAND_PREFIX:
+  if event.message.raw_text and event.message.raw_text[0] == COMMAND_PREFIX:
     await command_handler(event)
     await client.delete_messages(event.message.to_id, event.message.id)
   to_id = event.message.to_id
