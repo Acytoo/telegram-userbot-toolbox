@@ -6,12 +6,13 @@ Auto reply with fixed words
 import time
 from random import randint
 import asyncio
+import json
 
 from telethon import TelegramClient, events
 from telethon.tl.types import PeerUser, PeerChannel
 
 from config import API_ID, API_HASH, SESSION_NAME, CMD_REPLY, CMD_DELETE, AUTO_DELETE_TIME, AUTO_DELETE_WAIT_TIME
-from config import COMMAND_PREFIX, SAVED_CHANNEL_ID
+from config import COMMAND_PREFIX, SAVED_CHANNEL_ID, CHAT_CONFIG_FILE
 
 client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
 
@@ -25,6 +26,8 @@ fixed_messages = [
 auto_delete_jobs = [] # list of tuples (delete_time, to_id, message_id)
 auto_reply = False # Auto Reply in private message only
 group_delete_time = {} # dictionary, key: channel id; value: delete time for that channel
+chats = [] # list of dict
+
 
 async def command_handler(event):
   global auto_reply
@@ -39,7 +42,7 @@ async def command_handler(event):
     channel_id = event.message.to_id.channel_id
     if cmd[1] == "off":
       if channel_id in group_delete_time:
-        group_delete_time.pop(channel_id)
+        deactive_autodelete(channel_id)
         tmp_message = await event.reply("Automatic deletion deactivated")
       else:
         tmp_message = await event.reply("Automatic deletion deactivated")
@@ -48,7 +51,7 @@ async def command_handler(event):
         delete_time = int(cmd[1])
       except ValueError:
         delete_time = AUTO_DELETE_TIME
-      group_delete_time[channel_id] = delete_time
+      active_autodelete(channel_id, delete_time)
       tmp_message = await event.reply(f"Automatic deletion activated, set timer to {delete_time} minute(s)")
     await asyncio.sleep(3) # delete hint after 3 seconds
     await client.delete_messages(tmp_message.to_id, tmp_message.id)
@@ -83,14 +86,64 @@ async def incoming_message_handler(event):
 async def auto_delete(client):
   while True:
     await asyncio.sleep(AUTO_DELETE_WAIT_TIME)
-    if len(auto_delete_jobs) == 0:
-      continue
-    while len(auto_delete_jobs) != 0 and auto_delete_jobs[0][0] <= int(time.time()):
-      await client.delete_messages(auto_delete_jobs[0][1], auto_delete_jobs[0][2])
-      auto_delete_jobs.pop(0)
+    for item in auto_delete_jobs[:]:
+      if item[0] < int(time.time()):
+        await client.delete_messages(item[1], item[2])
+        auto_delete_jobs.remove(item)
 
+def deactive_autodelete(channel_id: int) -> None:
+  """
+  Remove channel_id from dict, save info to file
+  :param channel_id:
+  :return:
+  """
+  global chats
+  global group_delete_time
+  group_delete_time.pop(channel_id)
+  for item in chats:
+    if item["id"] == channel_id:
+      item["auto_delete"] = -1
+  dump_config()
+
+def active_autodelete(channel_id: int, delete_time: int) -> None:
+  """
+  Set auto_delete timer for channel_id, and save info to file
+  :param channel_id:
+  :param delete_time:
+  :return:
+  """
+  global chats
+  global group_delete_time
+  group_delete_time[channel_id] = delete_time
+  for item in chats:
+    if item["id"] == channel_id:
+      item["auto_delete"] = delete_time
+  dump_config()
+
+
+def load_config():
+  """
+  Load chat id name auto_delete information to chats: dict
+  :return:
+  """
+  global chats
+  with open(CHAT_CONFIG_FILE, "r", encoding="utf-8") as f:
+    chats = json.load(f)
+  for chat in chats:
+    if chat["auto_delete"] > 0:
+      group_delete_time[chat["id"]] = chat["auto_delete"]
+
+
+def dump_config():
+  """
+  Dump chat info to json
+  :return:
+  """
+  with open(CHAT_CONFIG_FILE, "w", encoding="utf-8") as f:
+    json.dump(chats, f, indent=2, ensure_ascii=False)
 
 def start():
+  load_config()
   with client:
     client.loop.create_task(auto_delete(client))
     client.run_until_disconnected()

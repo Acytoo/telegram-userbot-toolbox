@@ -6,19 +6,39 @@ import json
 from telethon import TelegramClient
 
 from config import SESSION_NAME, API_ID, API_HASH
-from config import CHAT_ID_FILE_NAME
+from config import CHAT_CONFIG_FILE
 
-
-async def get_list():
-  dialogs = await client.get_dialogs(limit=None)
-  name_id = {}
+async def init_chat_lists(client: TelegramClient) -> None:
+  """
+  Get all chat id, names, dump to file
+  [
+    {
+      "id": 123456789,
+      "name": "trash",
+      "auto_delete": -1
+    },
+    {
+      "id": 123456788,
+      "name": "saved",
+      "auto_delete": 30
+    }
+  ]
+  :param client: TelegramClient
+  :return: None
+  """
+  dialogs = await client.get_dialogs()
+  chats = []
   for dialog in dialogs:
-    name_id[dialog.entity.id] = dialog.name
-  with open(CHAT_ID_FILE_NAME, "w", encoding="utf-8") as f:
-    json.dump(name_id, f, indent=0, ensure_ascii=False)
-  print("Done")
+    chat = {}
+    chat["id"] = dialog.entity.id
+    chat["name"] = dialog.name
+    chat["auto_delete"] = -1
+    chats.append(chat)
+  with open(CHAT_CONFIG_FILE, "w", encoding="utf-8") as f:
+    json.dump(chats, f, indent=2, ensure_ascii=False)
+  print("Init Done")
 
 if __name__ == "__main__":
   client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
   with client:
-    client.loop.run_until_complete(get_list())
+    client.loop.run_until_complete(init_chat_lists(client))
