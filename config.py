@@ -22,6 +22,6 @@ AUTO_DELETE_WAIT_TIME = 10 # in seconds, for every 10 seconds, check and delete 
 
 CMD_REPLY = "autoreply"
 CMD_DELETE = "autodelete"
+CMD_LIST = "list"
 
 CHAT_CONFIG_FILE = "chat_ids.json"
-DOCUMENT_ID_FILE_NAME = "doc_ids.json"

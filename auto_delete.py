@@ -2,7 +2,7 @@
 Auto delete message in channel/groups
 Auto reply with fixed words
 """
-
+import os.path
 import time
 from random import randint
 import asyncio
@@ -12,7 +12,8 @@ from telethon import TelegramClient, events
 from telethon.tl.types import PeerUser, PeerChannel
 
 from config import API_ID, API_HASH, SESSION_NAME, CMD_REPLY, CMD_DELETE, AUTO_DELETE_TIME, AUTO_DELETE_WAIT_TIME
-from config import COMMAND_PREFIX, SAVED_CHANNEL_ID, CHAT_CONFIG_FILE
+from config import COMMAND_PREFIX, SAVED_CHANNEL_ID, CHAT_CONFIG_FILE, SELF_ID, CMD_LIST
+from list_chat_ids import list_chat_ids
 
 client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
 
@@ -27,6 +28,8 @@ auto_delete_jobs = [] # list of tuples (delete_time, to_id, message_id)
 auto_reply = False # Auto Reply in private message only
 group_delete_time = {} # dictionary, key: channel id; value: delete time for that channel
 chats = [] # list of dict
+id_name = {}
+peer_self = PeerUser(SELF_ID)
 
 
 async def command_handler(event):
@@ -52,9 +55,20 @@ async def command_handler(event):
       except ValueError:
         delete_time = AUTO_DELETE_TIME
       active_autodelete(channel_id, delete_time)
+      print("twice")
       tmp_message = await event.reply(f"Automatic deletion activated, set timer to {delete_time} minute(s)")
     await asyncio.sleep(3) # delete hint after 3 seconds
     await client.delete_messages(tmp_message.to_id, tmp_message.id)
+  elif event.message.to_id == peer_self: # send to self, other commands
+    if cmd[0] == CMD_LIST:
+      await client.send_message(peer_self, get_auto_delete_chats())
+
+
+def get_auto_delete_chats() -> str:
+  res = "Auto delete chats:\n"
+  for item in group_delete_time:
+    res += f"{id_name[item]}: {group_delete_time[item]} minute(s)\n"
+  return res
 
 
 @client.on(events.NewMessage(outgoing=True)) # monitor outgoing messages
@@ -127,9 +141,12 @@ def load_config():
   :return:
   """
   global chats
+  if not os.path.exists(CHAT_CONFIG_FILE):
+    list_chat_ids()
   with open(CHAT_CONFIG_FILE, "r", encoding="utf-8") as f:
     chats = json.load(f)
   for chat in chats:
+    id_name[chat["id"]] = chat["name"]
     if chat["auto_delete"] > 0:
       group_delete_time[chat["id"]] = chat["auto_delete"]
 

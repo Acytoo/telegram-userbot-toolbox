@@ -38,7 +38,10 @@ async def init_chat_lists(client: TelegramClient) -> None:
     json.dump(chats, f, indent=2, ensure_ascii=False)
   print("Init Done")
 
-if __name__ == "__main__":
+def list_chat_ids():
   client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
   with client:
     client.loop.run_until_complete(init_chat_lists(client))
+
+if __name__ == "__main__":
+  list_chat_ids()
