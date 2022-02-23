@@ -11,7 +11,6 @@ from telethon import TelegramClient
 from telethon.tl.types import PeerUser, PeerChannel
 
 from config import SESSION_NAME, API_ID, API_HASH
-from config import SAVED_CHANNEL_ID, SELECTED_CHANNEL_ID, MONITORED_CHANNEL_IDS
 from get_channel_files import dump_chat_file_id
 from utils import id_to_filename
 
@@ -76,5 +75,6 @@ def forward_history_files(src_channel_id: int, dst_channel_id: int,
 
 
 if __name__ == "__main__":
+  from config import SAVED_CHANNEL_ID, SELECTED_CHANNEL_ID, MONITORED_CHANNEL_IDS
   forward_history_files(MONITORED_CHANNEL_IDS[0], SAVED_CHANNEL_ID)
 
