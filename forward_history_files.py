@@ -38,7 +38,7 @@ async def forward_history(client, src_channel_id: int, dst_channel_id: int,
       if delete_after_send:
         await client.delete_messages(src_channel, message.id) # delete data from old channel
 
-  if ignore_existing:
+  if not ignore_existing:
     # if ignore existing, skip dumping filename
     dst_channel_files = id_to_filename(dst_channel_id)
     with open(dst_channel_files, "w", encoding="utf-8") as f:
@@ -56,14 +56,14 @@ def forward_history_files(src_channel_id: int, dst_channel_id: int,
   :param delete_after_send:
   :return:
   """
-  if not ignore_existing:
+  if ignore_existing:
+    document_ids = [] # ignore existing
+  else:
     dst_channel_files = id_to_filename(dst_channel_id) # get existing_file name
     if not os.path.exists(dst_channel_files): # if file not exist, dump files' name
       dump_chat_file_id(dst_channel_id)
     with open(dst_channel_files, "r", encoding="utf-8") as f:
       document_ids = json.load(f) # load existing file names
-  else:
-    document_ids = [] # ignore existing
 
   client = TelegramClient(SESSION_NAME, API_ID, API_HASH)
   with client:
